@@ -279,6 +279,7 @@ dict(
     gallery=[
         ("engine/engine_iso.webp", "Engine assembly."),
         ("engine/engine_section_labelled.webp", "Labelled section: injector, combustion chamber, fuel grain and nozzle."),
+            ("engine/plume_artistic_side.webp", "Artistic render (Blender) built from the CFD fields, with its own label: appearance only, not a measurement."),
         ("engine/plume_mach_near.webp", "Plume CFD: Mach number near the nozzle."),
         ("engine/plume_schlieren_near.webp", "Plume CFD: synthetic schlieren image of the shock structure."),
         ("engine/fea_max_thrust_vm.webp", "3D FEA at maximum thrust (von Mises stress)."),
@@ -294,7 +295,7 @@ dict(
     status=("Design in review", "sim"), role="Designer", team="Personal project for a private client",
     links=[("Live project site + 3D viewer", "https://gasparamiune.github.io/p1-propulsion/", "live"),
            ("Source", "https://github.com/gasparamiune/p1-propulsion", "code")],
-    cover="waterjet/vista_perspectiva.webp", hero="waterjet/site.webp",
+    cover="waterjet/vista_perspectiva.webp", hero="waterjet/corte_lateral.webp",
     intro=[
         "A boat owner wanted an electric waterjet for his small jet boat. I redesigned his sketch so it can actually work: "
         "a flush intake fully ahead of the impeller, a stainless impeller driven directly by a water-cooled motor, a "
@@ -555,3 +556,96 @@ dict(
     skills=["cv", "python"],
 ),
 ]
+
+
+# ====================================================================== REV 2 presentation data
+# Short names for the skills matrix header.
+SHORT = {
+    "pourstock": "PourStock", "argus": "ARGUS rover", "micromouse": "Micromouse", "hedge-agents": "Hedge agents",
+    "argos-h1": "ARGOS-H1 engine", "waterjet": "P1-J waterjet", "quantum-book": "Quantum Book",
+    "ai-bubble": "AI Bubble monitor", "cool-bench": "COOL-BENCH", "robotic-arm-fea": "Arm link FEA",
+    "aquagate": "AquaGate", "flood-drone": "Flood drone", "robot-dog": "Robot dog", "interstellar-game": "Interstellar game",
+}
+
+# Featured plates on the home page: media, caption and three key facts (all taken from the project text above).
+FEATURE = {
+    "pourstock": {"media": ("video", "pourstock/floor-merge.mp4", "pourstock/floor-merge.webp"),
+                  "cap": "Floor plan: merging tables during live service. Screen recording.",
+                  "keys": ["Live at pourstock.com", "AI constitution and a quality gate on every change", "24/7 Claude support agent for staff"]},
+    "argus": {"media": ("img", "argus/06_exploded_view.webp"),
+              "cap": "Exploded view of the assembly. CAD render.",
+              "keys": ["I led the team of nine and ran integration", "One Python model computes every budget", "A drivable 3D test in the browser"]},
+    "micromouse": {"media": ("maze",),
+                   "cap": "Running now: my floodfill algorithm solving a random maze.",
+                   "keys": ["Firmware written by hand in C/C++", "Floodfill solver with dual PID control", "STM32H743 microcontroller"]},
+    "hedge-agents": {"media": ("diagram",),
+                     "cap": "System map: data, agents, scoring and the safety layer.",
+                     "keys": ["Ten agent modules, one scoring engine", "Kill switch, daily action limit, heartbeat", "One LLM router with budget caps"]},
+    "argos-h1": {"media": ("img", "engine/plume_render.webp", "fit"),
+                 "cap": "Artistic render built from the CFD fields. Appearance only.",
+                 "keys": ["C++ controller for a Teensy 4.1", "Software-in-the-loop test on every release", "3D FEA, plume CFD and landing Monte Carlo"]},
+}
+
+# Rotating plate in the home hero: (image, project slug, caption, fit)
+HERO_SLIDES = [
+    ("argus/02_stowed_in_0.5m_cube.webp", "argus", "ARGUS lunar rover, stowed in its 0.5 m launch envelope. CAD render.", ""),
+    ("pourstock/floor-merge.webp", "pourstock", "PourStock, the floor plan during service. Screenshot.", "top"),
+    ("engine/plume_render.webp", "argos-h1", "ARGOS-H1 engine plume. Artistic render from the CFD fields, appearance only.", "fit"),
+    ("drone/d_000.webp", "flood-drone", "Flood surveillance drone, assembled. Photo.", ""),
+    ("aquagate/jet_photo.webp", "aquagate", "AquaGate, the built axial jet unit. Photo.", ""),
+]
+
+# How the big figure at the top of each project page is shown.
+#   cover (default) | top (screenshots, anchored to the top) | fit (whole image on dark) | sheet (small image on the grid)
+#   maze (live simulator) | pair (two images) | diagram (no image: the system map)
+PAGE_HERO = {
+    "pourstock": ("top", "pourstock/floor-merge.webp"),
+    "argus": ("cover", "argus/03_at_station_APXS_down.webp"),
+    "micromouse": ("maze",),
+    "hedge-agents": ("diagram",),
+    "argos-h1": ("fit", "engine/plume_render.webp"),
+    "waterjet": ("sheet", "waterjet/corte_lateral.webp"),
+    "quantum-book": ("top", "quantum/home.webp"),
+    "ai-bubble": ("top", "aibubble/home.webp"),
+    "cool-bench": ("diagram",),
+    "robotic-arm-fea": ("cover", "ifem/fea_016.webp"),
+    "aquagate": ("cover", "aquagate/jet_photo.webp"),
+    "flood-drone": ("cover", "drone/d_000.webp"),
+    "robot-dog": ("pair", "robotdog/g_090.webp", "robotdog/g_001.webp"),
+    "interstellar-game": ("diagram",),
+}
+PAGE_HERO_CAP = {
+    "pourstock": "The floor plan during service. Screenshot of the live product.",
+    "argus": "At a science station with the APXS instrument lowered. CAD render.",
+    "micromouse": "Running now: the floodfill algorithm from my firmware solving a random maze.",
+    "hedge-agents": "System map: data, agents, scoring and the safety layer.",
+    "argos-h1": "Artistic render built from the CFD fields. Appearance only, not a measurement.",
+    "waterjet": "Centreline section through the CAD: intake, impeller, nozzle and reverse bucket.",
+    "quantum-book": "Home of the book. Screenshot.",
+    "ai-bubble": "The dashboard. Screenshot.",
+    "cool-bench": "System map of the bench.",
+    "robotic-arm-fea": "Mesh around the mounting bore. Ansys.",
+    "aquagate": "The built axial jet unit. Photo.",
+    "flood-drone": "The assembled drone. Photo.",
+    "robot-dog": "Left: the finished prototype. Right: the design render.",
+    "interstellar-game": "From webcam frame to game input.",
+}
+
+PLAYS = [
+    ("https://gasparamiune.github.io/ARGus/surface-test/", ("img", "argus/04_leg_closeup.webp"), "Game · 3D",
+     "Drive ARGUS on the Moon", "The real rover CAD in three.js: drive it, switch design revisions, open every part."),
+    ("play/micromouse.html", ("maze",), "Simulation",
+     "Micromouse floodfill", "My maze-solving algorithm exploring a random maze, step by step."),
+    ("https://gasparamiune.github.io/quantum-physics-book/", ("img", "quantum/home.webp"), "Interactive book",
+     "Beat the quantum bosses", "Simulations, hint ladders and four final bosses for the exam."),
+]
+
+TIMELINE = [
+    ("Now", "Compressor failure analysis, Danfoss", "Disassembling compressors and tracing mechanical, electrical and electronic faults."),
+    ("Now", "Founder, PourStock", "Operations software for restaurants and hotels, live at pourstock.com."),
+    ("2027", "BSc Mechatronics Engineering, SDU Sønderborg", "Final year. Graduating June 2027."),
+    ("11 yrs", "Restaurants and hotels", "Eleven years on the floor. It is where PourStock comes from."),
+    ("2017", "Programming Technician (Java)", "Technical secondary school diploma, Argentina."),
+]
+# CEFR level on a six-step scale (A1 = 1 ... C2 / native = 6)
+LANGS = [("Spanish", 6, "Native"), ("English", 5, "C1"), ("Italian", 5, "C1"), ("Danish", 3, "B1"), ("Russian", 1, "A1")]

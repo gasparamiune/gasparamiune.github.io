@@ -1,64 +1,89 @@
-// Theme, filters, lightbox, lazy embeds, reveal-on-scroll.
+// Theme, reveal on scroll, filters, hero plate, lightbox, lazy live previews, videos.
 (function(){
-  const root=document.documentElement;
-  try{const t=localStorage.getItem('theme'); if(t) root.dataset.theme=t;}catch(e){}
-  document.querySelectorAll('.theme-btn').forEach(b=>b.addEventListener('click',()=>{
-    const n=root.dataset.theme==='light'?'dark':'light'; root.dataset.theme=n; try{localStorage.setItem('theme',n)}catch(e){}
+  const root=document.documentElement, $$=(s,el)=>[...(el||document).querySelectorAll(s)];
+
+  // Theme: paper (default) or dark
+  $$('.theme-btn').forEach(b=>b.addEventListener('click',()=>{
+    const dark=root.dataset.theme!=='dark';
+    if(dark)root.dataset.theme='dark';else delete root.dataset.theme;
+    try{localStorage.setItem('theme',dark?'dark':'light')}catch(e){}
   }));
 
-  // Reveal
-  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.08});
-  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+  // Reveal on scroll
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.06,rootMargin:'0px 0px -4% 0px'});
+    $$('.rv').forEach(el=>io.observe(el));
+  }else root.classList.add('ready');
 
-  // Project filters (category tabs + skill chips)
-  const cards=[...document.querySelectorAll('.card[data-cat]')];
-  if(cards.length){
-    let cat='all', skill=null;
-    const note=document.querySelector('.filter-note');
+  // Work filters: category buttons, plus a skill picked in the matrix
+  const items=$$('[data-cat][data-skills]');
+  if(items.length){
+    let cat='all', skill=null; const note=document.querySelector('.fnote');
     const apply=()=>{
       let n=0;
-      cards.forEach(c=>{
-        const ok=(cat==='all'||c.dataset.cat===cat)&&(!skill||c.dataset.skills.split(' ').includes(skill));
-        c.classList.toggle('hide',!ok); if(ok)n++;
-      });
-      document.querySelectorAll('[data-skill]').forEach(ch=>ch.classList.toggle('on',ch.dataset.skill===skill));
+      items.forEach(c=>{const ok=(cat==='all'||c.dataset.cat===cat)&&(!skill||c.dataset.skills.split(' ').includes(skill));c.classList.toggle('hide',!ok);if(ok){n++;c.classList.add('in')}});
+      $$('tr[data-row]').forEach(r=>r.classList.toggle('on',r.dataset.row===skill));
+      $$('.filters button').forEach(b=>b.classList.toggle('on',b.dataset.f===cat));
       if(note){
-        if(skill){const lab=document.querySelector(`[data-skill="${skill}"]`)?.dataset.label||skill;
-          note.innerHTML=`Showing ${n} project${n===1?'':'s'} that use <b>${lab}</b> · <button type="button">clear</button>`;
-          note.querySelector('button').onclick=()=>{skill=null;apply()};}
+        if(skill){const lab=document.querySelector(`[data-skill="${skill}"]`).dataset.label;
+          note.innerHTML=`Showing ${n} project${n===1?'':'s'} that use${n===1?'s':''} <b></b> <button type="button">Clear</button>`;
+          note.querySelector('b').textContent=lab; note.querySelector('button').onclick=()=>{skill=null;apply()};}
         else note.textContent='';
       }
     };
-    document.querySelectorAll('.filters button').forEach(b=>b.addEventListener('click',()=>{
-      document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); cat=b.dataset.f; apply();
-    }));
-    document.querySelectorAll('[data-skill]').forEach(ch=>ch.addEventListener('click',()=>{
-      skill=skill===ch.dataset.skill?null:ch.dataset.skill; apply();
-      document.getElementById('projects').scrollIntoView({behavior:'smooth'});
+    $$('.filters button').forEach(b=>b.addEventListener('click',()=>{cat=b.dataset.f;apply()}));
+    $$('[data-skill]').forEach(b=>b.addEventListener('click',()=>{
+      skill=skill===b.dataset.skill?null:b.dataset.skill; cat='all'; apply();
+      if(skill)document.getElementById('work').scrollIntoView({behavior:'smooth'});
     }));
   }
 
-  // Lightbox
-  const figs=[...document.querySelectorAll('.gallery figure')];
+  // Hero plate: rotate the real images
+  const plate=document.querySelector('.plate');
+  if(plate){
+    const imgs=$$('.media img',plate), ticks=$$('.ticks i',plate), cap=plate.querySelector('.pc'), no=plate.querySelector('figcaption b'), link=plate.querySelector('a.media');
+    let i=0, t=null;
+    const show=k=>{i=(k+imgs.length)%imgs.length; imgs.forEach((m,j)=>m.classList.toggle('on',j===i)); ticks.forEach((m,j)=>m.classList.toggle('on',j===i));
+      cap.textContent=imgs[i].dataset.cap; no.textContent='FIG. '+String(i+1).padStart(2,'0'); link.href=imgs[i].dataset.href};
+    const go=()=>{clearInterval(t); t=setInterval(()=>show(i+1),4800)};
+    if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)&&imgs.length>1){
+      imgs.forEach(m=>{m.loading='eager'}); go();
+      plate.addEventListener('mouseenter',()=>clearInterval(t)); plate.addEventListener('mouseleave',go);
+    }
+  }
+
+  // Lightbox for the figures
+  const figs=$$('.figs .fig');
   if(figs.length){
-    const lb=document.createElement('div'); lb.className='lb';
+    const lb=document.createElement('div'); lb.className='lb'; lb.setAttribute('role','dialog'); lb.setAttribute('aria-label','Figure viewer');
     lb.innerHTML='<button class="x" aria-label="Close">✕</button><button class="pv" aria-label="Previous">‹</button><img alt=""><p></p><button class="nx" aria-label="Next">›</button>';
     document.body.appendChild(lb); let i=0;
-    const show=k=>{i=(k+figs.length)%figs.length;const f=figs[i];lb.querySelector('img').src=f.querySelector('img').src;lb.querySelector('img').alt=f.querySelector('img').alt;lb.querySelector('p').textContent=f.querySelector('figcaption')?.textContent||'';lb.classList.add('on')};
-    figs.forEach((f,k)=>f.addEventListener('click',()=>show(k)));
-    lb.querySelector('.x').onclick=()=>lb.classList.remove('on');
+    const show=k=>{i=(k+figs.length)%figs.length;const f=figs[i],im=f.querySelector('img');lb.querySelector('img').src=im.currentSrc||im.src;lb.querySelector('img').alt=im.alt;const fc=f.querySelector('figcaption');lb.querySelector('p').textContent=fc.querySelector('b').textContent+' · '+fc.querySelector('span').textContent;lb.classList.add('on')};
+    const close=()=>lb.classList.remove('on');
+    figs.forEach((f,k)=>{f.addEventListener('click',()=>show(k));f.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(k)}})});
+    lb.querySelector('.x').onclick=close;
     lb.querySelector('.pv').onclick=e=>{e.stopPropagation();show(i-1)}; lb.querySelector('.nx').onclick=e=>{e.stopPropagation();show(i+1)};
-    lb.addEventListener('click',e=>{if(e.target===lb)lb.classList.remove('on')});
-    document.addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;if(e.key==='Escape')lb.classList.remove('on');if(e.key==='ArrowLeft')show(i-1);if(e.key==='ArrowRight')show(i+1)});
+    lb.addEventListener('click',e=>{if(e.target===lb)close()});
+    document.addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;if(e.key==='Escape')close();if(e.key==='ArrowLeft')show(i-1);if(e.key==='ArrowRight')show(i+1)});
   }
 
-  // Lazy live previews
-  document.querySelectorAll('.embed [data-src]').forEach(b=>b.addEventListener('click',()=>{
-    const st=b.closest('.stage'); const f=document.createElement('iframe'); f.src=b.dataset.src; f.loading='lazy';
+  // Live previews load only when asked
+  $$('.embed [data-src]').forEach(b=>b.addEventListener('click',()=>{
+    const st=b.closest('.stage'), f=document.createElement('iframe'); f.src=b.dataset.src; f.loading='lazy';
     f.allow='fullscreen; accelerometer; gyroscope'; f.title='Live preview'; st.innerHTML=''; st.appendChild(f);
   }));
 
-  // Play videos only when visible
-  const vio=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target; if(e.isIntersecting) v.play().catch(()=>{}); else v.pause();}),{threshold:.35});
-  document.querySelectorAll('video[data-auto]').forEach(v=>vio.observe(v));
+  // Videos play only while visible
+  if('IntersectionObserver' in window){
+    const vio=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target; if(e.isIntersecting)v.play().catch(()=>{}); else v.pause()}),{threshold:.35});
+    $$('video[data-auto]').forEach(v=>vio.observe(v));
+  }
+
+  // Table of contents: mark the section in view
+  const toc=$$('.toc a[href^="#"]');
+  if(toc.length&&'IntersectionObserver' in window){
+    const map=new Map(toc.map(a=>[a.getAttribute('href').slice(1),a]));
+    const so=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){toc.forEach(a=>a.classList.remove('on'));const a=map.get(e.target.id);if(a)a.classList.add('on')}}),{rootMargin:'-20% 0px -70% 0px'});
+    map.forEach((a,id)=>{const s=document.getElementById(id);if(s)so.observe(s)});
+  }
 })();
