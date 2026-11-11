@@ -1,0 +1,75 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Micromouse floodfill · Gaspar Amiune</title>
+<meta name="description" content="Watch the floodfill algorithm from my Micromouse firmware explore a random 16x16 maze, then race the shortest path.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+.sim{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px;padding:40px 0 72px}
+@media(max-width:960px){.sim{grid-template-columns:1fr}}
+.board{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:14px}
+.board canvas{width:100%;max-width:min(100%,74vh);margin:0 auto;aspect-ratio:1;border-radius:8px;display:block}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
+.ctrl label{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:14px}
+.readout{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:14px}
+.readout div{background:var(--bg2);padding:12px}.readout b{display:block;font:700 22px var(--f-display)}.readout small{color:var(--muted);font-size:12px}
+.phase{display:block;margin:4px 0 6px;font:600 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--amber)}
+.legend{display:grid;gap:8px;font-size:14px;color:var(--muted);margin:0;padding:0;list-style:none}
+.legend i{display:inline-block;width:22px;height:4px;border-radius:2px;margin-right:8px;vertical-align:middle}
+</style></head><body><div class="grid-bg"></div>
+<header class="nav"><div class="wrap"><a class="brand" href="../index.html"><i></i>Gaspar Amiune</a>
+<nav><a class="hide-sm" href="../index.html#projects">Projects</a><a href="../projects/micromouse.html">Micromouse project</a><button class="theme-btn" aria-label="Toggle light and dark theme">◐</button></nav></div></header>
+<main class="wrap">
+<div style="padding-top:44px"><a class="crumb" href="../projects/micromouse.html">← Micromouse maze robot</a><div class="kicker">Interactive · runs in your browser</div>
+<h1 style="font:700 clamp(36px,5vw,60px)/1.02 var(--f-display);letter-spacing:-.03em;margin:12px 0 10px">Micromouse floodfill, live</h1>
+<p style="color:var(--muted);max-width:760px;font-size:17px;margin:0">The mouse starts in the bottom-left corner and knows nothing about the maze. Each time it enters a cell it sees that cell's walls, re-runs <span class="mono">Flood()</span> on what it knows, and steps to the lowest-numbered open neighbour. Once it reaches the centre it explores back home, then races the shortest path it has proven.</p></div>
+<div class="sim">
+<div class="board"><canvas id="cv" aria-label="Maze simulation"></canvas>
+<div class="ctrl"><button class="btn primary" id="play">▶ Run</button><button class="btn" id="stepb">Step</button><button class="btn" id="newb">New maze</button>
+<label><input type="checkbox" id="reveal"> Show hidden walls</label><label><input type="checkbox" id="nums" checked> Distances</label>
+<label>Speed <input type="range" id="speed" min="1" max="60" value="18"></label></div>
+<div class="readout"><div><span class="phase" id="phase">Exploring</span><small>phase</small></div><div><b id="steps">0</b><small>exploration steps</small></div><div><b id="run">–</b><small>speed-run cells</small></div></div></div>
+<aside class="side" style="top:84px">
+<div class="panel"><h4>What you see</h4><ul class="legend">
+<li><i style="background:var(--text)"></i>Walls the mouse has sensed</li>
+<li><i style="background:rgba(147,160,182,.5)"></i>Hidden walls (toggle above)</li>
+<li><i style="background:rgba(92,200,255,.7)"></i>Path explored so far</li>
+<li><i style="background:#ffb547"></i>Final speed-run path</li>
+<li><i style="background:linear-gradient(90deg,hsla(40,85%,55%,.7),hsla(200,85%,55%,.4))"></i>Distance map: warm = close to target</li></ul></div>
+<div class="code" style="margin-top:0"><header><i></i><i></i><i></i>&nbsp;the same logic in my C++ firmware</header><pre style="max-height:360px"><code>void Flood() {
+  std::queue&lt;pii&gt; q;
+  // every cell starts "infinitely" far
+  ...
+  // the 4 centre cells are distance 0
+  for (goal : goals) { dist = 0; q.push(goal); }
+  while (!q.empty()) {
+    auto [x, y] = q.front(); q.pop();
+    for (int d = 0; d &lt; 4; d++) {
+      if (wall[x][y][d] == 1) continue; // known wall
+      if (dist[nx][ny] &gt; dist[x][y] + 1) {
+        dist[nx][ny] = dist[x][y] + 1;
+        q.push({nx, ny});
+      }
+    }
+  }
+}</code></pre><div class="note">On the robot this runs on an STM32H743 in well under a millisecond.</div></div>
+</aside></div></main>
+<footer><div class="wrap"><span>© 2026 Gaspar Amiune</span><span>Visualisation built for this portfolio from the algorithm in my Micromouse firmware.</span></div></footer>
+<script src="../assets/maze.js"></script><script src="../assets/site.js"></script>
+<script>
+(function(){
+  const cv=document.getElementById('cv'),ctx=cv.getContext('2d');let sim=new Micromouse.Sim(Date.now()%1e9),running=false,acc=0,last=0;
+  const $=id=>document.getElementById(id);
+  const size=()=>{const r=cv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);cv.width=cv.height=Math.round(r.width*d);render()};
+  const render=()=>{Micromouse.draw(ctx,sim,cv.width,{reveal:$('reveal').checked,numbers:$('nums').checked});
+    $('steps').textContent=sim.steps;$('run').textContent=sim.runPath?sim.runPath.length-1:'–';
+    $('phase').textContent={explore:'Exploring',return:'Returning home',run:'Speed run',done:'Done'}[sim.phase]};
+  const tick=t=>{if(running){acc+=(t-last)*$('speed').value/1000;while(acc>=1){acc--;if(!sim.step()){running=false;$('play').textContent='▶ Run';break}}render()}last=t;requestAnimationFrame(tick)};
+  $('play').onclick=()=>{if(sim.phase==='done')sim=new Micromouse.Sim(Date.now()%1e9);running=!running;$('play').textContent=running?'❚❚ Pause':'▶ Run'};
+  $('stepb').onclick=()=>{running=false;$('play').textContent='▶ Run';sim.step();render()};
+  $('newb').onclick=()=>{sim=new Micromouse.Sim(Date.now()%1e9);render()};
+  $('reveal').onchange=render;$('nums').onchange=render;addEventListener('resize',size);size();requestAnimationFrame(tick);
+})();
+</script></body></html>
