@@ -411,6 +411,12 @@ def main():
         open(os.path.join(ROOT, "projects", p["slug"] + ".html"), "w").write(build_project(i))
     open(os.path.join(ROOT, "play", "micromouse.html"), "w").write(build_play())
     open(os.path.join(ROOT, "404.html"), "w").write(build_404())
+    base = "https://gasparamiune.github.io/"
+    urls = ["", "play/micromouse.html"] + [f"projects/{p['slug']}.html" for p in PROJECTS]
+    open(os.path.join(ROOT, "sitemap.xml"), "w").write(
+        '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "".join(f"  <url><loc>{base}{u}</loc></url>\n" for u in urls) + "</urlset>\n")
+    open(os.path.join(ROOT, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\nSitemap: {base}sitemap.xml\n")
     print(f"built index + {N} project pages + play page + 404")
 
 if __name__ == "__main__":
